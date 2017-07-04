@@ -1,0 +1,13 @@
+image: python:latest
+
+cache:
+  paths:
+  - ~/.cache/pip/
+
+before_script:
+  - pip install pytest
+  - python setup.py develop
+
+test:
+  script:
+  - py.test

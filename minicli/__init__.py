@@ -77,7 +77,7 @@ class Cli:
     def init_parser(self):
         self.parser = subparsers.add_parser(self.name, help=self.short_help,
                                             conflict_handler='resolve')
-        self.parser.set_defaults(func=self.invoke)
+        self.set_defaults(func=self.invoke)
         for name, parameter in self.spec.parameters.items():
             kwargs = {}
             default = parameter.default
@@ -138,7 +138,8 @@ def cli(*args, **kwargs):
 
 def run(*args):
     parsed = parser.parse_args(args or None)
-    try:
+    if hasattr(parsed, 'func'):
         parsed.func(parsed)
-    except AttributeError:
+    else:
+        # No argument given, just display help.
         parser.print_help()

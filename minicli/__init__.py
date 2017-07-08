@@ -3,7 +3,7 @@ import asyncio
 import inspect
 
 
-NO_DEFAULT = object()
+NO_DEFAULT = inspect._empty
 NARGS = ...
 
 parser = argparse.ArgumentParser()
@@ -39,7 +39,7 @@ class Cli:
             value = getattr(parsed, name)
             if parameter.kind == parameter.VAR_POSITIONAL:
                 args.extend(value)
-            elif parameter.default == inspect._empty:
+            elif parameter.default == NO_DEFAULT:
                 args.append(value)
             else:
                 kwargs[name] = value
@@ -87,8 +87,6 @@ class Cli:
         for name, parameter in self.spec.parameters.items():
             kwargs = {}
             default = parameter.default
-            if default == inspect._empty:
-                default = NO_DEFAULT
             if parameter.kind == parameter.VAR_POSITIONAL:
                 default = NARGS
             type_ = parameter.annotation

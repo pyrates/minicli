@@ -1,3 +1,5 @@
+import asyncio
+
 import pytest
 
 from minicli import cli, run
@@ -177,3 +179,45 @@ def test_can_call_cli_without_arguments(capsys):
     run('mycommand', 'myparam')
     out, err = capsys.readouterr()
     assert "Param is myparam" in out
+
+
+def test_can_decorate_async_functions(capsys):
+
+    @cli
+    async def mycommand(param):
+        print("Param is", param)
+
+    run('mycommand', 'myparam')
+    out, err = capsys.readouterr()
+    assert "Param is myparam" in out
+
+    asyncio.get_event_loop().run_until_complete(mycommand('myparam'))
+    out, err = capsys.readouterr()
+    assert "Param is myparam" in out
+
+
+def test_can_mix_async_and_normal_functions(capsys):
+
+    @cli
+    async def mycommand(param):
+        print("Param is", param)
+
+    @cli
+    def myothercommand(param):
+        print("Other command param is", param)
+
+    run('mycommand', 'myparam')
+    out, err = capsys.readouterr()
+    assert "Param is myparam" in out
+
+    run('myothercommand', 'myparam')
+    out, err = capsys.readouterr()
+    assert "Other command param is myparam" in out
+
+    asyncio.get_event_loop().run_until_complete(mycommand('myparam'))
+    out, err = capsys.readouterr()
+    assert "Param is myparam" in out
+
+    myothercommand('myparam')
+    out, err = capsys.readouterr()
+    assert "Other command param is myparam" in out

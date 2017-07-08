@@ -1,4 +1,5 @@
 import argparse
+import asyncio
 import inspect
 
 
@@ -19,11 +20,14 @@ class Cli:
         self.inspect()
         self.init_parser()
         self.set_globals()
+        command._cli = self
 
     def __call__(self, *args, **kwargs):
         """Run original command."""
         try:
-            self.command(*args, **kwargs)
+            res = self.command(*args, **kwargs)
+            if self.async:
+                asyncio.get_event_loop().run_until_complete(res)
         except KeyboardInterrupt:
             pass
 
@@ -40,7 +44,7 @@ class Cli:
             else:
                 kwargs[name] = value
         kwargs.update(self.parse_globals(parsed))
-        self(*args, **kwargs)
+        return self(*args, **kwargs)
 
     def set_globals(self):
         for name, kwargs in GLOBALS.items():
@@ -67,6 +71,7 @@ class Cli:
     def inspect(self):
         self.__doc__ = inspect.getdoc(self.command)
         self.spec = inspect.signature(self.command)
+        self.async = inspect.iscoroutinefunction(self.command)
 
     def parse_parameter_help(self, name):
         try:
@@ -125,23 +130,23 @@ def cli(*args, **kwargs):
     if not args:
         # User-friendlyness: allow using @cli() without any argument.
         return cli
-    elif isinstance(args[0], Cli):
-        if len(args) > 1 and kwargs:
-            extra = args[0].extra
-            extra[args[1]] = kwargs
-            for idx, action in enumerate(subparsers._choices_actions[:]):
-                if action.dest == args[0].name:
-                    del subparsers._choices_actions[idx]
-            return Cli(args[0].command, **extra)
-        return args[0]
-    elif callable(args[0]):
-        extra = {}
-        if len(args) > 1:
-            extra[args[1]] = kwargs
-        return Cli(args[0], **extra)
-    elif args or kwargs:
+    if not callable(args[0]):
         # We are overriding an argument from the decorator.
         return lambda f: cli(f, *args, **kwargs)
+    func = args[0]
+    extra = {}
+    if hasattr(func, '_cli') and len(args) > 1 and kwargs:
+        # Chaining cli(xxx) calls.
+        extra = func._cli.extra
+        # We don't know how to update an existing action, so let's reset it
+        # totally with new signature.
+        for idx, action in enumerate(subparsers._choices_actions[:]):
+            if action.dest == func._cli.name:
+                del subparsers._choices_actions[idx]
+    if len(args) > 1:
+        extra[args[1]] = kwargs
+    Cli(func, **extra)
+    return func
 
 
 def run(*args):

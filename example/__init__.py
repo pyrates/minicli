@@ -3,7 +3,7 @@ from minicli import cli, run
 
 @cli('deaf', help='If the person is deaf, we can write louder')
 @cli('name', choices=['bob', 'mike', 'dave'])
-def greetings(name, age: int, deaf=False):
+async def greetings(name, age: int, deaf=False):
     """This is an example program
 
     :name: The name of the person we want to greet

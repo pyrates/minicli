@@ -13,7 +13,8 @@ GLOBALS = {}
 
 class Cli:
 
-    def __init__(self, command):
+    def __init__(self, command, **extra):
+        self.extra = extra
         self.command = command
         self.inspect()
         self.init_parser()
@@ -88,6 +89,7 @@ class Cli:
             type_ = parameter.annotation
             if type_ != inspect._empty:
                 kwargs['type'] = type_
+            kwargs.update(self.extra.get(name, {}))
             self.add_argument(name, default, **kwargs)
 
     def add_argument(self, name, default=NO_DEFAULT, **kwargs):
@@ -121,16 +123,22 @@ class Cli:
 
 def cli(*args, **kwargs):
     if not args:
-        # User-friendlyness: allow usage @cli() without any argument.
+        # User-friendlyness: allow using @cli() without any argument.
         return cli
     elif isinstance(args[0], Cli):
-        args[0].add_argument(*args[1:], **kwargs)
+        if len(args) > 1 and kwargs:
+            extra = args[0].extra
+            extra[args[1]] = kwargs
+            for idx, action in enumerate(subparsers._choices_actions[:]):
+                if action.dest == args[0].name:
+                    del subparsers._choices_actions[idx]
+            return Cli(args[0].command, **extra)
         return args[0]
     elif callable(args[0]):
-        inst = Cli(args[0])
+        extra = {}
         if len(args) > 1:
-            inst.add_argument(*args[1:], **kwargs)
-        return inst
+            extra[args[1]] = kwargs
+        return Cli(args[0], **extra)
     elif args or kwargs:
         # We are overriding an argument from the decorator.
         return lambda f: cli(f, *args, **kwargs)

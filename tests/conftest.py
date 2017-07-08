@@ -1,10 +1,5 @@
-from minicli import parser
+from minicli import subparsers
 
 
 def pytest_runtest_teardown():
-    pass
-    # Reset registered commands.
-    # parser._subparsers._actions = []
-    # for action in parser._actions:
-    #     action.container._remove_action(action)
-    # parser._actions = []
+    subparsers._choices_actions.clear()

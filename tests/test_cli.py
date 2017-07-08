@@ -18,6 +18,17 @@ def test_simple_arg_is_a_required_string(capsys):
         assert "error: the following arguments are required: param" in str(e)
 
 
+def test_can_use_original_function(capsys):
+
+    @cli
+    def mycommand(param):
+        print("Param is", param)
+
+    mycommand('myparam')
+    out, err = capsys.readouterr()
+    assert "Param is myparam" in out
+
+
 def test_kwarg_is_an_optional_param(capsys):
 
     @cli
@@ -47,9 +58,10 @@ def test_kwarg_value_type_is_used(capsys):
     out, err = capsys.readouterr()
     assert "Param is 22" in out
 
-    with pytest.raises(SystemExit) as e:
+    with pytest.raises(SystemExit):
         run('mycommand', '--param', 'notanint')
-        assert "argument --param/-p: invalid int value: 'notanint'" in str(e)
+    out, err = capsys.readouterr()
+    assert "argument --param/-p: invalid int value: 'notanint'" in err
 
 
 def test_arg_can_be_typed_by_annotation(capsys):
@@ -62,9 +74,10 @@ def test_arg_can_be_typed_by_annotation(capsys):
     out, err = capsys.readouterr()
     assert "Param is 22" in out
 
-    with pytest.raises(SystemExit) as e:
+    with pytest.raises(SystemExit):
         run('mycommand', 'notanint')
-        assert "argument param: invalid int value: 'notanint'" in str(e)
+    out, err = capsys.readouterr()
+    assert "argument param: invalid int value: 'notanint'" in err
 
 
 def test_first_line_of_docstring_is_used_for_command_doc(capsys):
@@ -77,7 +90,7 @@ def test_first_line_of_docstring_is_used_for_command_doc(capsys):
     with pytest.raises(SystemExit):
         run('--help')
     out, err = capsys.readouterr()
-    assert "This is command doc" in out
+    assert 'This is command doc' in out
 
 
 def test_can_set_param_help_from_docstring(capsys):
@@ -92,7 +105,52 @@ def test_can_set_param_help_from_docstring(capsys):
     with pytest.raises(SystemExit):
         run('mycommand', '--help')
     out, err = capsys.readouterr()
-    assert "this is my param help" in out
+    assert 'this is my param help' in out
+
+
+def test_can_set_param_help_from_cli_kwargs(capsys):
+
+    @cli('myparam', help='this is my param help from kwargs')
+    def mycommand(myparam: int):
+        """This is command doc
+
+        :myparam: this is my param help
+        """
+
+    with pytest.raises(SystemExit):
+        run('mycommand', '--help')
+    out, err = capsys.readouterr()
+    assert 'this is my param help from kwargs' in out
+
+
+def test_can_set_param_choices_from_cli_kwargs(capsys):
+
+    @cli('myparam', choices=[1, 2, 3, 4])
+    def mycommand(myparam: int):
+        print("Param is", myparam)
+
+    run('mycommand', '2')
+    out, err = capsys.readouterr()
+    assert "Param is 2" in out
+
+    with pytest.raises(SystemExit):
+        run('mycommand', '5')
+    out, err = capsys.readouterr()
+    assert "myparam: invalid choice: 5 (choose from 1, 2, 3, 4)" in err
+
+
+def test_can_override_two_params_from_cli_kwargs(capsys):
+
+    @cli('myparam', help='myparam help')
+    @cli('other', help='my other param help')
+    def mycommand(myparam, other):
+        pass
+
+    with pytest.raises(SystemExit):
+        run('mycommand', '--help')
+    out, err = capsys.readouterr()
+    assert "myparam help" in out
+    assert "my other param help" in out
 
 
 def test_args_are_mapped_nargs(capsys):
@@ -108,3 +166,14 @@ def test_args_are_mapped_nargs(capsys):
     assert "Param: param1" in out
     assert "Param: param2" in out
     assert "Param: param3" in out
+
+
+def test_can_call_cli_without_arguments(capsys):
+
+    @cli()  # Calling the decorator without args nor kwargs.
+    def mycommand(param):
+        print("Param is", param)
+
+    run('mycommand', 'myparam')
+    out, err = capsys.readouterr()
+    assert "Param is myparam" in out

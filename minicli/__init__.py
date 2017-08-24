@@ -112,7 +112,7 @@ class Cli:
             elif type_ in (int, str):
                 kwargs['type'] = type_
             elif type_ in (list, tuple):
-                kwargs['nargs'] = '*'
+                kwargs['nargs'] = kwargs.get('nargs', '*')
             elif callable(default):
                 kwargs['type'] = type_
                 kwargs['default'] = ''

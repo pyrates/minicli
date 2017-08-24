@@ -221,3 +221,19 @@ def test_can_mix_async_and_normal_functions(capsys):
     myothercommand('myparam')
     out, err = capsys.readouterr()
     assert "Other command param is myparam" in out
+
+
+def test_can_override_list_nargs(capsys):
+
+    @cli('param', nargs=4)
+    def mycommand(param=[1, 2, 3, 4]):
+        print(param)
+
+    run('mycommand', '--param', '1', '2', '3', '4')
+    out, err = capsys.readouterr()
+    assert "['1', '2', '3', '4']" in out
+
+    with pytest.raises(SystemExit):
+        run('mycommand', '--param', '1', '2', '3')
+    out, err = capsys.readouterr()
+    assert "argument --param/-p: expected 4 arguments" in err

@@ -13,7 +13,7 @@ VERSION = (0, 1, 0)
 
 __author__ = 'Yohan Boniface'
 __contact__ = "yohan.boniface@data.gouv.fr"
-__homepage__ = "https://github.com/yohanboniface/minicli"
+__homepage__ = "https://framagit.org/drone/minicli"
 __version__ = ".".join(map(str, VERSION))
 
 setup(

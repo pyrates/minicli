@@ -1,0 +1,7 @@
+site_name: Minicli - minimalist CLI parser.
+pages:
+  - Home: index.md
+  - How-to guides: how-to.md
+  - Reference: reference.md
+  - Changelog: changelog.md
+theme: readthedocs

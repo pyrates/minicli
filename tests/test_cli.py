@@ -237,3 +237,30 @@ def test_can_override_list_nargs(capsys):
         run('mycommand', '--param', '1', '2', '3')
     out, err = capsys.readouterr()
     assert "argument --param/-p: expected 4 arguments" in err
+
+
+def test_can_override_name(capsys):
+
+    @cli(name='new_name')
+    def mycommand(param):
+        print(param)
+
+    run('new_name', 'foo')
+    out, err = capsys.readouterr()
+    assert "foo" in out
+
+
+def test_can_override_param_with_same_name_as_command(capsys):
+
+    @cli('mycommand', choices=['foo', 'bar'])
+    def mycommand(mycommand):
+        print(mycommand)
+
+    run('mycommand', 'foo')
+    out, err = capsys.readouterr()
+    assert "foo" in out
+
+    with pytest.raises(SystemExit):
+        run('mycommand', 'baz')
+    out, err = capsys.readouterr()
+    assert "mycommand: invalid choice: 'baz' (choose from 'foo', 'bar')" in err

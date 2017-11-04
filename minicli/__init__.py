@@ -81,8 +81,13 @@ class Cli:
             return ''
 
     def init_parser(self):
-        self.parser = subparsers.add_parser(self.name, help=self.short_help,
-                                            conflict_handler='resolve')
+        kwargs = {
+            'name': self.name,
+            'help': self.short_help,
+            'conflict_handler': 'resolve'
+        }
+        kwargs.update(self.extra.get('__self__', {}))
+        self.parser = subparsers.add_parser(**kwargs)
         self.set_defaults(func=self.invoke)
         for name, parameter in self.spec.parameters.items():
             kwargs = {}
@@ -127,6 +132,8 @@ class Cli:
 def cli(*args, **kwargs):
     if not args:
         # User-friendlyness: allow using @cli() without any argument.
+        if kwargs:  # Overriding parser arguments with only kwargs.
+            return lambda f: cli(f, '__self__', **kwargs)
         return cli
     if not callable(args[0]):
         # We are overriding an argument from the decorator.

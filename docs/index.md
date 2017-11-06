@@ -70,3 +70,8 @@ Example usage:
 
 
 See [how-to guides](how-to.md) for more usage examples.
+
+
+## Contributing
+
+The code is hosted on [Github](https://github.com/pyrates/minicli).

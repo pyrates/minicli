@@ -1,6 +1,6 @@
 # Changelog
 
-## dev version
+## 0.2.0
 
 - allow to override parser options (`name`…)
 

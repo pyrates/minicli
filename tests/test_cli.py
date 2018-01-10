@@ -2,7 +2,7 @@ import asyncio
 
 import pytest
 
-from minicli import cli, run
+from minicli import cli, run, before, after
 
 
 def test_simple_arg_is_a_required_string(capsys):
@@ -264,3 +264,79 @@ def test_can_override_param_with_same_name_as_command(capsys):
         run('mycommand', 'baz')
     out, err = capsys.readouterr()
     assert "mycommand: invalid choice: 'baz' (choose from 'foo', 'bar')" in err
+
+
+def test_before_after_hooks(capsys):
+
+    @cli
+    def mycommand(mycommand):
+        print(mycommand)
+
+    @after
+    def on_after():
+        print('after')
+
+    @before
+    def on_before():
+        print('before')
+
+    run('mycommand', 'during')
+    out, err = capsys.readouterr()
+    assert 'before\nduring\nafter\n' in out
+
+
+def test_before_after_hooks_can_be_async(capsys):
+
+    @cli
+    def mycommand(mycommand):
+        print(mycommand)
+
+    @after
+    async def on_after():
+        print('after')
+
+    @before
+    async def on_before():
+        print('before')
+
+    run('mycommand', 'during')
+    out, err = capsys.readouterr()
+    assert 'before\nduring\nafter\n' in out
+
+
+def test_before_after_hooks_can_access_globals(capsys):
+
+    @cli
+    def mycommand(mycommand):
+        print(mycommand)
+
+    @after
+    def on_after(host):
+        print('after', host)
+
+    @before
+    def on_before(host):
+        print('before', host)
+
+    run('mycommand', 'during', host='example.org')
+    out, err = capsys.readouterr()
+    assert 'before example.org\nduring\nafter example.org\n' in out
+
+    run('mycommand', 'during', '--host', 'example.org', host='default')
+    out, err = capsys.readouterr()
+    assert 'before example.org\nduring\nafter example.org\n' in out
+
+
+def test_cmd_can_access_globals(capsys):
+
+    @cli
+    def mycommand(param, host=None):
+        print(param, host)
+
+    run('mycommand', 'param', host='example.org')
+    out, err = capsys.readouterr()
+    assert 'param example.org' in out
+
+    run('mycommand', 'param', '--host', 'example.org', host='default')
+    out, err = capsys.readouterr()
+    assert 'param example.org' in out

@@ -1,5 +1,7 @@
-from minicli import subparsers
+from minicli import registry, pre_hooks, post_hooks
 
 
 def pytest_runtest_teardown():
-    subparsers._choices_actions.clear()
+    registry.clear()
+    pre_hooks.clear()
+    post_hooks.clear()

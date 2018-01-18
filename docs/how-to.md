@@ -60,7 +60,7 @@ instance for a `filepath` argument:
             sys.exit(f'Path {path} does not exist. Aborting')
 
 
-### How to override the command name
+## How to override the command name
 
 You may want to override the command name, maybe because your are
 using a python reserved keyword, or you want to prevent a name clash:
@@ -70,7 +70,7 @@ using a python reserved keyword, or you want to prevent a name clash:
         # You can use `next` as command name now.
 
 
-### How to use `nargs` positional argument
+## How to use `nargs` positional argument
 
 If you want to use a `narg` positional argument, you just need to define an
 `*args` parameter:
@@ -82,7 +82,7 @@ If you want to use a `narg` positional argument, you just need to define an
             print('Filename:', filename)
 
 
-### How to control the number of possible optional arguments
+## How to control the number of possible optional arguments
 
 For this, you should override the `nargs` option:
 
@@ -92,10 +92,57 @@ For this, you should override the `nargs` option:
         pass
 
 
-### How to define argument choices
+## How to define argument choices
 
 You may want to control the choices for a mandatory positional argument:
 
     @cli('direction', choices=['top', 'down', 'left', 'right'])
     def go_to(direction):
         pass
+
+
+## How to deal with global parameters
+
+You may have parameters used all over your commands, and you want to define them
+only once. This can be done through the `run`
+[call](reference.md#global-parameters):
+
+    import getpass
+
+    @cli
+    def my_command(username=None):
+        # do something with username
+
+
+    @cli
+    def my_other_command(username=None):
+        # do something with username
+
+    run(username=getpass.getuser())
+
+
+## How to create a global DB connection
+
+If all of your commands use a single DB connection (or it can be a single SSH
+connection…), you can manage it using the [wrap](reference.md#wrap) decorator:
+
+    app = MyApp()
+
+    @cli
+    def my_command():
+        # do something with app.connection
+
+
+    @cli
+    def my_other_command():
+        # do something with app.connection
+
+
+    @wrap
+    async def wrapper(dbname, dbuser):  # Of course it works without async.
+        app.connection = await mydb.connect(dbname, dbuser)
+        yield
+        await app.connection.close()
+
+
+    run(dbname='default', dbuser='default')

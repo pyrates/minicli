@@ -73,3 +73,29 @@ See [how-to guides](how-to.md) for concrete usage examples.
 
     if __name__ == '__main__':
         run()
+
+### Global parameters
+
+Any kwarg passed to `run` will be turned to a global parameter.
+
+    run(hostname='example.com')
+
+See
+[How to deal with global parameters](how-to.md#how-to-deal-with-global-parameters).
+
+
+## wrap
+
+`wrap` is a decorator that can turn any function into a wrapper that will be
+called before and after the command.
+
+    @wrap
+    def my_wrapper():
+        print('before')  # This will be called before the command
+        yield
+        print('after')  # This will be called after the command
+
+`wrap` can also be used with `async` functions.
+
+`wrap` can use any global parameters, see
+[How to create a global DB connection](how-to.md#how-to-create-a-global-db-connection).

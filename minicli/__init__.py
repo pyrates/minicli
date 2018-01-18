@@ -4,9 +4,9 @@ import inspect
 
 NO_DEFAULT = inspect._empty
 NARGS = ...
-pre_hooks = []
-post_hooks = []
-registry = []
+_wrapper_functions = []
+_wrapper_generators = []
+_registry = []
 
 
 class Cli:
@@ -16,7 +16,7 @@ class Cli:
         self.command = command
         self.inspect()
         command._cli = self
-        registry.append(self)
+        _registry.append(self)
 
     def __call__(self, *args, **kwargs):
         """Run original command."""
@@ -125,7 +125,7 @@ def run(*input, **shared):
         args, kwargs = make_argument(name, **kwargs)
         parser.add_argument(*args, **kwargs)
     # shared must be parsed before actual commands so they can be passed to
-    # before hook
+    # before wrapper
     parsed, extras = parser.parse_known_args(input or None)
     shared = {k: getattr(parsed, k, None) for k in shared.keys()
               if hasattr(parsed, k)}
@@ -134,33 +134,43 @@ def run(*input, **shared):
     parser.add_argument('-h', '--help', action='store_true',
                         help='Show this help message and exit')
     subparsers = parser.add_subparsers(title='Available commands', metavar='')
-    for cmd in registry:
+    for cmd in _registry:
         cmd.init_parser(subparsers)
     parsed = parser.parse_args(args=extras)
     if hasattr(parsed, 'func'):
-        hooks(pre_hooks, **shared)
+        prepare_wrappers(**shared)
+        call_wrappers()
         parsed.func(parsed, **shared)
-        hooks(post_hooks, **shared)
+        call_wrappers()
     else:
         # No argument given, just display help.
         parser.print_help()
         parser.exit()  # Mimic original behaviour.
 
 
-def before(func):
-    pre_hooks.append(func)
+def wrap(func):
+    if not (inspect.isgeneratorfunction(func)
+            or inspect.isasyncgenfunction(func)):
+        raise ValueError(f'"{func}" needs to yield')
+    _wrapper_functions.append(func)
     return func
 
 
-def after(func):
-    post_hooks.append(func)
-    return func
+def call_wrappers():
+    for wrapper in _wrapper_generators:
+        try:
+            if inspect.isasyncgen(wrapper):
+                fut = wrapper.__anext__()
+                asyncio.get_event_loop().run_until_complete(fut)
+            else:
+                next(wrapper)
+        except (StopIteration, StopAsyncIteration):
+            pass
 
 
-def hooks(funcs, **shared):
-    for func in funcs:
+def prepare_wrappers(**shared):
+    for func in _wrapper_functions:
         spec = inspect.signature(func)
-        async_ = inspect.iscoroutinefunction(func)
         kwargs = {}
         args = []
         for name, parameter in spec.parameters.items():
@@ -171,9 +181,8 @@ def hooks(funcs, **shared):
                 args.append(value)
             else:
                 kwargs[name] = value
-        res = func(*args, **kwargs)
-        if async_:
-            asyncio.get_event_loop().run_until_complete(res)
+        # Execute each wrapper to get the generator.
+        _wrapper_generators.append(func(*args, **kwargs))
 
 
 def make_argument(name, default=NO_DEFAULT, **kwargs):

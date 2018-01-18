@@ -1,7 +1,7 @@
-from minicli import registry, pre_hooks, post_hooks
+from minicli import _registry, _wrapper_functions, _wrapper_generators
 
 
 def pytest_runtest_teardown():
-    registry.clear()
-    pre_hooks.clear()
-    post_hooks.clear()
+    _registry.clear()
+    _wrapper_functions.clear()
+    _wrapper_generators.clear()

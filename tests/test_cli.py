@@ -2,7 +2,7 @@ import asyncio
 
 import pytest
 
-from minicli import cli, run
+from minicli import cli, run, wrap
 
 
 def test_simple_arg_is_a_required_string(capsys):
@@ -264,3 +264,85 @@ def test_can_override_param_with_same_name_as_command(capsys):
         run('mycommand', 'baz')
     out, err = capsys.readouterr()
     assert "mycommand: invalid choice: 'baz' (choose from 'foo', 'bar')" in err
+
+
+def test_wrappers(capsys):
+
+    @cli
+    def mycommand(mycommand):
+        print(mycommand)
+
+    @wrap
+    def my_wrapper():
+        print('before')
+        yield
+        print('after')
+
+    run('mycommand', 'during')
+    out, err = capsys.readouterr()
+    assert 'before\nduring\nafter\n' in out
+
+
+def test_wrapper_cannot_omit_yield(capsys):
+
+    @cli
+    def mycommand(mycommand):
+        print(mycommand)
+
+    with pytest.raises(ValueError):
+        @wrap
+        def my_wrapper():
+            print('before')
+
+
+def test_wrappers_can_be_async(capsys):
+
+    @cli
+    def mycommand(mycommand):
+        print(mycommand)
+
+    @wrap
+    async def my_wrapper():
+        print('before')
+        yield
+        print('after')
+
+    run('mycommand', 'during')
+    out, err = capsys.readouterr()
+    assert 'before\nduring\nafter\n' in out
+
+
+def test_wrappers_can_access_globals(capsys):
+
+    @cli
+    def mycommand(mycommand):
+        print(mycommand)
+
+    @wrap
+    def my_wrapper(host):
+        print('before', host)
+        yield
+        print('after', host)
+
+    run('mycommand', 'during', host='example.org')
+    out, err = capsys.readouterr()
+    assert 'before example.org\nduring\nafter example.org\n' in out
+
+    run('mycommand', 'during', '--host', 'example.org', host='default')
+    out, err = capsys.readouterr()
+    assert 'before example.org\nduring\nafter example.org\n' in out
+
+
+def test_cmd_can_access_globals(capsys):
+
+    @cli
+    def mycommand(param, host=None):
+        print(param, host)
+
+    run('mycommand', 'param', host='example.org')
+    out, err = capsys.readouterr()
+    assert 'param example.org' in out
+
+    run('mycommand', 'param', '--host', 'example.org', host='default')
+    out, err = capsys.readouterr()
+    assert 'param example.org' in out

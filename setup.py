@@ -9,11 +9,11 @@ here = path.abspath(path.dirname(__file__))
 with open(path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
-VERSION = (0, 2, 0)
+VERSION = (0, 3, 0)
 
-__author__ = 'Yohan Boniface'
+__author__ = 'Pyrates Team'
 __contact__ = "yohan.boniface@data.gouv.fr"
-__homepage__ = "https://framagit.org/drone/minicli"
+__homepage__ = "https://github.com/pyrates/minicli"
 __version__ = ".".join(map(str, VERSION))
 
 setup(

@@ -15,8 +15,9 @@ class Cli:
         self.extra = extra
         self.command = command
         self.inspect()
-        command._cli = self
-        _registry.append(self)
+        if not hasattr(command, '_cli'):
+            command._cli = self
+            _registry.append(self)
 
     def __call__(self, *args, **kwargs):
         """Run original command."""

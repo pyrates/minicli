@@ -153,6 +153,10 @@ def test_can_override_two_params_from_cli_kwargs(capsys):
     out, err = capsys.readouterr()
     assert "myparam help" in out
     assert "my other param help" in out
+    with pytest.raises(SystemExit):
+        run('--help')
+    out, err = capsys.readouterr()
+    assert out.count('mycommand') == 1
 
 
 def test_args_are_mapped_nargs(capsys):

@@ -137,16 +137,25 @@ def run(*input, **shared):
     subparsers = parser.add_subparsers(title='Available commands', metavar='')
     for cmd in _registry:
         cmd.init_parser(subparsers)
-    parsed = parser.parse_args(args=extras)
-    if hasattr(parsed, 'func'):
-        prepare_wrappers(**shared)
-        call_wrappers()
+
+    def parse_known_args(extras, first=False):
+        parsed, extras = parser.parse_known_args(args=extras)
+        if not parsed or not hasattr(parsed, 'func'):
+            # No argument given, just display help.
+            parser.print_help()
+            parser.exit()  # Mimic original behaviour.
+        if first:
+            prepare_wrappers(**shared)
+            call_wrappers()
         parsed.func(parsed, **shared)
-        call_wrappers()
-    else:
-        # No argument given, just display help.
-        parser.print_help()
-        parser.exit()  # Mimic original behaviour.
+        try:
+            if extras:
+                parse_known_args(extras)
+        finally:
+            if first:
+                call_wrappers()
+
+    parse_known_args(extras, first=True)
 
 
 def wrap(func):

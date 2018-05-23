@@ -15,5 +15,14 @@ async def greetings(name, age: int, deaf=False):
     print(msg)
 
 
+@cli
+def bye(name):
+    """Say bye.
+
+    :name: The name of the person we say bye to.
+    """
+    print(f'Bye {name}!')
+
+
 if __name__ == '__main__':
-    run()
+    run(deaf=False)

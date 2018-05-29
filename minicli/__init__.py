@@ -44,7 +44,7 @@ class Cli:
 
     @property
     def name(self):
-        return self.command.__name__
+        return self.command.__name__.replace('_', '-')
 
     @property
     def help(self):

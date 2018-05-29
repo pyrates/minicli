@@ -350,3 +350,53 @@ def test_cmd_can_access_globals(capsys):
     run('mycommand', 'param', '--host', 'example.org', host='default')
     out, err = capsys.readouterr()
     assert 'param example.org' in out
+
+
+def test_can_chain_command_calls(capsys):
+
+    @cli
+    def mycommand(param, optional=False):
+        print("Param is", param)
+
+    @cli
+    def myothercommand(param):
+        print("Other command param is", param)
+
+    @wrap
+    def my_wrapper():
+        print('before')
+        yield
+        print('after')
+
+    run('mycommand', 'myparam')
+    out, err = capsys.readouterr()
+    assert "Param is myparam" in out
+    assert out.count('before') == 1
+    assert out.count('after') == 1
+
+    run('myothercommand', 'myparam')
+    out, err = capsys.readouterr()
+    assert "Other command param is myparam" in out
+    assert out.count('before') == 1
+    assert out.count('after') == 1
+
+    run('myothercommand', 'myparam', 'mycommand', 'myparam', '--optional')
+    out, err = capsys.readouterr()
+    assert "Param is myparam" in out
+    assert "Other command param is myparam" in out
+    assert out.count('before') == 1
+    assert out.count('after') == 1
+
+    run('mycommand', 'myparam', '--optional', 'myothercommand', 'myparam')
+    out, err = capsys.readouterr()
+    assert "Param is myparam" in out
+    assert "Other command param is myparam" in out
+    assert out.count('before') == 1
+    assert out.count('after') == 1
+
+    run('mycommand', 'myparam', 'myothercommand', 'myparam')
+    out, err = capsys.readouterr()
+    assert "Param is myparam" in out
+    assert "Other command param is myparam" in out
+    assert out.count('before') == 1
+    assert out.count('after') == 1

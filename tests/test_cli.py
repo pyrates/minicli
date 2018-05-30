@@ -1,4 +1,5 @@
 import asyncio
+import sys
 
 import pytest
 
@@ -312,23 +313,6 @@ def test_wrapper_cannot_omit_yield(capsys):
         @wrap
         def my_wrapper():
             print('before')
-
-
-def test_wrappers_can_be_async(capsys):
-
-    @cli
-    def mycommand(mycommand):
-        print(mycommand)
-
-    @wrap
-    async def my_wrapper():
-        print('before')
-        yield
-        print('after')
-
-    run('mycommand', 'during')
-    out, err = capsys.readouterr()
-    assert 'before\nduring\nafter\n' in out
 
 
 def test_wrappers_can_access_globals(capsys):

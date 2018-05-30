@@ -161,7 +161,7 @@ def run(*input, **shared):
 def wrap(func):
     if not (inspect.isgeneratorfunction(func)
             or inspect.isasyncgenfunction(func)):
-        raise ValueError(f'"{func}" needs to yield')
+        raise ValueError('"{}" needs to yield'.format(func))
     _wrapper_functions.append(func)
     return func
 

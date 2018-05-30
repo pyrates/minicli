@@ -4,7 +4,7 @@
 
 - allow to chain commands (`script.py command1 arg1 command2 arg2`)
 - fixed command registered multiple time when chaining @cli calls
-- BREAKING: `_` in command name are replaced by `-`
+- `_` in command name are replaced by `-` (but original name is kept as alias)
 
 ## 0.3.0
 

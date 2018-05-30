@@ -203,7 +203,8 @@ def make_argument(name, default=NO_DEFAULT, **kwargs):
         args[0] = '--{}'.format(name.replace('_', '-'))
         kwargs['dest'] = name
         kwargs['default'] = default
-        type_ = kwargs.pop('type', type(default))
+        type_ = kwargs.pop('type',
+                           type(default) if default is not None else None)
         if type_ == bool:
             action = 'store_false' if default else 'store_true'
             kwargs['action'] = action

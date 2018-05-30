@@ -62,6 +62,40 @@ def test_kwarg_is_an_optional_param(capsys):
     assert "Param is default" in out
 
 
+def test_kwarg_with_none_default(capsys):
+
+    @cli
+    def mycommand(param=None):
+        print("Param is", param if param else "empty")
+
+    run('mycommand', '--param', 'value')
+    out, err = capsys.readouterr()
+    assert "Param is value" in out
+
+    run('mycommand')
+    out, err = capsys.readouterr()
+    assert "Param is empty" in out
+
+
+def test_kwarg_with_empty_string_default(capsys):
+
+    @cli
+    def mycommand(param=''):
+        print("Param is", param, type(param))
+
+    run('mycommand', '--param', 'value')
+    out, err = capsys.readouterr()
+    assert "Param is value <class 'str'>" in out
+
+    run('mycommand', '--param', '9')
+    out, err = capsys.readouterr()
+    assert "Param is 9 <class 'str'>" in out
+
+    run('mycommand')
+    out, err = capsys.readouterr()
+    assert "Param is  <class 'str'>" in out
+
+
 def test_kwarg_value_type_is_used(capsys):
 
     @cli

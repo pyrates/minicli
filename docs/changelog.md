@@ -5,10 +5,11 @@
 - allow to chain commands (`script.py command1 arg1 command2 arg2`)
 - fixed command registered multiple time when chaining @cli calls
 - `_` in command name are replaced by `-` (but original name is kept as alias)
+- fixed arbitrary callable as annotation not working with kwargs
 
 ## 0.3.0
 
-- added `@wrapper` decorator as before/after hook
+- added `@wrap` decorator as before/after hook
 
 ## 0.2.0
 

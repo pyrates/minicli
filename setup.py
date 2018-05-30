@@ -21,6 +21,7 @@ setup(
     version=__version__,
     description=__doc__,
     long_description=long_description,
+    long_description_content_type='text/markdown; charset=UTF-8; variant=GFM',
     url=__homepage__,
     author=__author__,
     author_email=__contact__,

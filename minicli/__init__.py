@@ -207,10 +207,10 @@ def make_argument(name, default=NO_DEFAULT, **kwargs):
         if type_ == bool:
             action = 'store_false' if default else 'store_true'
             kwargs['action'] = action
-        elif type_ in (int, str):
-            kwargs['type'] = type_
         elif type_ in (list, tuple):
             kwargs['nargs'] = kwargs.get('nargs', '*')
+        elif callable(type_):
+            kwargs['type'] = type_
         elif callable(default):
             kwargs['type'] = type_
             kwargs['default'] = ''

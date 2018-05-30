@@ -1,4 +1,5 @@
 import asyncio
+from pathlib import Path
 
 import pytest
 
@@ -95,6 +96,59 @@ def test_arg_can_be_typed_by_annotation(capsys):
         run('mycommand', 'notanint')
     out, err = capsys.readouterr()
     assert "argument param: invalid int value: 'notanint'" in err
+
+
+def test_arg_can_use_arbitrary_callable_as_annotation_of_kwarg(capsys):
+
+    def mytype(value):
+        if value == 'invalid':
+            raise ValueError
+        return value+value
+
+    @cli
+    def mycommand(param: mytype=None):
+        print("Param is", param)
+
+    run('mycommand', '--param', 'foofoo')
+    out, err = capsys.readouterr()
+    assert "Param is foofoo" in out
+
+    with pytest.raises(SystemExit):
+        run('mycommand', '--param', 'invalid')
+    out, err = capsys.readouterr()
+    assert """argument param: invalid loads value: 'invalid' in err"""
+
+
+def test_arg_can_use_arbitrary_callable_as_annotation_as_arg(capsys):
+
+    def mytype(value):
+        if value == 'invalid':
+            raise ValueError
+        return value+value
+
+    @cli
+    def mycommand(param: mytype):
+        print("Param is", param)
+
+    run('mycommand', 'foofoo')
+    out, err = capsys.readouterr()
+    assert "Param is foofoo" in out
+
+    with pytest.raises(SystemExit):
+        run('mycommand', 'invalid')
+    out, err = capsys.readouterr()
+    assert """argument param: invalid loads value: 'invalid' in err"""
+
+
+def test_arg_can_use_path_as_annotation_of_arg(capsys):
+
+    @cli
+    def mycommand(param: Path):
+        print("Param:", param, param.exists())
+
+    run('mycommand', '/foo/bar')
+    out, err = capsys.readouterr()
+    assert "Param: /foo/bar False" in out
 
 
 def test_first_line_of_docstring_is_used_for_command_doc(capsys):

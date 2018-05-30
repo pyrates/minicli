@@ -4,6 +4,10 @@ Expose functions in the command line. Minimalist and pythonic.
 
 Supports annotations and async functions.
 
+## Requirements
+
+- Python >= 3.6
+
 
 ## Install
 

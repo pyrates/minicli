@@ -1,0 +1,14 @@
+language: python
+python:
+- '3.6'
+install:
+- python setup.py develop
+- pip install -r requirements-dev.txt
+script: py.test -v
+branches:
+  only:
+    - master
+notifications:
+  email:
+    on_failure: always
+    on_success: never

@@ -16,7 +16,7 @@ async def greetings(name, age: int, deaf=False):
 
 
 @cli
-def bye(name):
+def say_bye(name):
     """Say bye.
 
     :name: The name of the person we say bye to.

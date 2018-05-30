@@ -27,6 +27,8 @@ This is the more common usage of `@cli`. But sometimes, you want better
 control. This is done by passing `argparse` arguments to `@cli`, see below.
 
 *Note: `@cli()` will also work.*
+*Note: underscores (`_`) are replaced by dashes (`-`) in command names and
+ arguments*
 
 
 ### `@cli(**kwargs)` (kwargs, but no args)

@@ -31,6 +31,21 @@ def test_can_use_original_function(capsys):
     assert "Param is myparam" in out
 
 
+def test_underscore_are_replaced(capsys):
+
+    @cli
+    def my_command(param):
+        print("Param is", param)
+
+    run('my-command', 'myparam')
+    out, err = capsys.readouterr()
+    assert "Param is myparam" in out
+
+    run('my_command', 'myparam')  # Name with _ should be kept as alias
+    out, err = capsys.readouterr()
+    assert "Param is myparam" in out
+
+
 def test_kwarg_is_an_optional_param(capsys):
 
     @cli

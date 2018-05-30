@@ -1,6 +1,6 @@
 # Changelog
 
-### dev
+### 0.4.0
 
 - allow to chain commands (`script.py command1 arg1 command2 arg2`)
 - fixed command registered multiple time when chaining @cli calls
@@ -10,6 +10,7 @@
 ## 0.3.0
 
 - added `@wrap` decorator as before/after hook
+- BREAKING: removed support for python 3.5 and above
 
 ## 0.2.0
 

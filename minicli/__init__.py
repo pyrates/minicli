@@ -43,10 +43,6 @@ class Cli:
         return self(*args, **kwargs)
 
     @property
-    def name(self):
-        return self.command.__name__.replace('_', '-')
-
-    @property
     def help(self):
         return self.command.__doc__ or ''
 
@@ -68,10 +64,14 @@ class Cli:
 
     def init_parser(self, subparsers):
         kwargs = {
-            'name': self.name,
             'help': self.short_help,
             'conflict_handler': 'resolve'
         }
+        name = self.command.__name__
+        if '_' in name:
+            kwargs['aliases'] = [name]
+            name = name.replace('_', '-')
+        kwargs['name'] = name
         kwargs.update(self.extra.get('__self__', {}))
         self.parser = subparsers.add_parser(**kwargs)
         self.set_defaults(func=self.invoke)

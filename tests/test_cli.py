@@ -41,6 +41,10 @@ def test_underscore_are_replaced(capsys):
     out, err = capsys.readouterr()
     assert "Param is myparam" in out
 
+    run('my_command', 'myparam')  # Name with _ should be kept as alias
+    out, err = capsys.readouterr()
+    assert "Param is myparam" in out
+
 
 def test_kwarg_is_an_optional_param(capsys):
 

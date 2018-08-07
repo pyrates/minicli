@@ -9,7 +9,7 @@ here = path.abspath(path.dirname(__file__))
 with open(path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
-VERSION = (0, 4, 2)
+VERSION = (0, 4, 3)
 
 __author__ = 'Pyrates Team'
 __contact__ = "yohan.boniface@data.gouv.fr"
@@ -35,6 +35,7 @@ setup(
 
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
     ],
     keywords='cli command line interface',
     packages=find_packages(exclude=['tests']),

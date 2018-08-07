@@ -23,7 +23,7 @@ class Cli:
         """Run original command."""
         try:
             res = self.command(*args, **kwargs)
-            if self.async:
+            if self._async:
                 asyncio.get_event_loop().run_until_complete(res)
         except KeyboardInterrupt:
             pass
@@ -53,7 +53,7 @@ class Cli:
     def inspect(self):
         self.__doc__ = inspect.getdoc(self.command)
         self.spec = inspect.signature(self.command)
-        self.async = inspect.iscoroutinefunction(self.command)
+        self._async = inspect.iscoroutinefunction(self.command)
 
     def parse_parameter_help(self, name):
         try:

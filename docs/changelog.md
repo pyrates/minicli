@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.3
+
+- removed usage of reserved pyton 3.7 keyword `async`
+
 ### 0.4.0
 
 - allow to chain commands (`script.py command1 arg1 command2 arg2`)

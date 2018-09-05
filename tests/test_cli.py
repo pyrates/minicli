@@ -503,3 +503,20 @@ def test_can_chain_command_calls(capsys):
     assert "Other command param is myparam" in out
     assert out.count('before') == 1
     assert out.count('after') == 1
+
+
+def test_do_not_call_any_command_with_unkown_extra(capsys):
+
+    @cli
+    def mycommand(param):
+        print(param)
+
+    run('mycommand', 'success')
+    out, err = capsys.readouterr()
+    assert "success" in out
+
+    with pytest.raises(SystemExit):
+        run('mycommand', 'success', 'failed')
+    out, err = capsys.readouterr()
+    assert "success" not in out
+    assert "failed" not in out

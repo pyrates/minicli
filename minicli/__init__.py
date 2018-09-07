@@ -138,24 +138,25 @@ def run(*input, **shared):
     for cmd in _registry:
         cmd.init_parser(subparsers)
 
-    def parse_known_args(extras, first=False):
-        parsed, extras = parser.parse_known_args(args=extras)
-        if not parsed or not hasattr(parsed, 'func'):
+    # Parse all possible args before calling any func, to prevent considering
+    # a wrong argument passed by mistake as a chained command.
+    commands = []
+    while extras:
+        command, extras = parser.parse_known_args(args=extras)
+        if not command or not hasattr(command, 'func'):
             # No argument given, just display help.
             parser.print_help()
             parser.exit()  # Mimic original behaviour.
-        if first:
-            prepare_wrappers(**shared)
-            call_wrappers()
-        parsed.func(parsed, **shared)
-        try:
-            if extras:
-                parse_known_args(extras)
-        finally:
-            if first:
-                call_wrappers()
+        commands.append(command)
 
-    parse_known_args(extras, first=True)
+    # Now call commands for real.
+    prepare_wrappers(**shared)
+    call_wrappers()
+    try:
+        for command in commands:
+            command.func(command, **shared)
+    finally:
+        call_wrappers()
 
 
 def wrap(func):

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.4
+
+-  Do not call any command unless all arguments are valid (#8)
+
 ## 0.4.3
 
 - removed usage of reserved pyton 3.7 keyword `async`

@@ -65,9 +65,20 @@ instance for a `filepath` argument:
 You may want to override the command name, maybe because your are
 using a python reserved keyword, or you want to prevent a name clash:
 
-    @cli(name='next')
-    def next_():
-        # You can use `next` as command name now.
+    @cli(name='import')
+    def import_():
+        # You can use `import` as command name now.
+
+
+## How to override an argument name
+
+You may want to override an argument name, maybe because your are
+using a python reserved keyword:
+
+    @cli("from_", name='from')  # Pass here any argparse argument you want to control.
+    def mycommmand(from_=None):
+        # You can use `from` as argument now.
+        # mycommand --from foobar
 
 
 ## How to use `nargs` positional argument

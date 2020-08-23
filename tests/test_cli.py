@@ -346,13 +346,24 @@ def test_can_override_list_nargs(capsys):
     assert "argument --param/-p: expected 4 arguments" in err
 
 
-def test_can_override_name(capsys):
+def test_can_override_command_name(capsys):
 
-    @cli(name='new_name')
-    def mycommand(param):
+    @cli(name='import')
+    def import_(param):
         print(param)
 
-    run('new_name', 'foo')
+    run('import', 'foo')
+    out, err = capsys.readouterr()
+    assert "foo" in out
+
+
+def test_can_override_arg_name(capsys):
+
+    @cli("from_", name='from')
+    def mycommand(from_=None):
+        print(from_)
+
+    run('mycommand', '--from', 'foo')
     out, err = capsys.readouterr()
     assert "foo" in out
 

@@ -75,7 +75,7 @@ class Cli:
         kwargs.update(self.extra.get('__self__', {}))
         self.parser = subparsers.add_parser(**kwargs)
         self.set_defaults(func=self.invoke)
-        for name, parameter in self.spec.parameters.items():
+        for arg_name, parameter in self.spec.parameters.items():
             kwargs = {}
             default = parameter.default
             if parameter.kind == parameter.VAR_POSITIONAL:
@@ -83,15 +83,15 @@ class Cli:
             type_ = parameter.annotation
             if type_ != inspect._empty:
                 kwargs['type'] = type_
-            kwargs.update(self.extra.get(name, {}))
+            kwargs.update(self.extra.get(arg_name, {}))
             if 'help' not in kwargs:
-                kwargs['help'] = self.parse_parameter_help(name)
+                kwargs['help'] = self.parse_parameter_help(arg_name)
             if 'default' not in kwargs:
                 kwargs['default'] = default
-            self.add_argument(name, **kwargs)
+            self.add_argument(arg_name, **kwargs)
 
-    def add_argument(self, name, **kwargs):
-        args, kwargs = make_argument(name, **kwargs)
+    def add_argument(self, arg_name, **kwargs):
+        args, kwargs = make_argument(arg_name, **kwargs)
         self.parser.add_argument(*args, **kwargs)
 
     def set_defaults(self, **kwargs):
@@ -120,10 +120,10 @@ def cli(*args, **kwargs):
 
 def run(*input, **shared):
     parser = argparse.ArgumentParser(add_help=False)
-    for name, kwargs in shared.items():
+    for arg_name, kwargs in shared.items():
         if not isinstance(kwargs, dict):
             kwargs = {'default': kwargs}
-        args, kwargs = make_argument(name, **kwargs)
+        args, kwargs = make_argument(arg_name, **kwargs)
         parser.add_argument(*args, **kwargs)
     # shared must be parsed before actual commands so they can be passed to
     # before wrapper
@@ -196,13 +196,14 @@ def prepare_wrappers(**shared):
         _wrapper_generators.append(func(*args, **kwargs))
 
 
-def make_argument(name, default=NO_DEFAULT, **kwargs):
+def make_argument(arg_name, default=NO_DEFAULT, **kwargs):
+    name = kwargs.pop("name", arg_name)
     args = [name]
     if default not in (NO_DEFAULT, NARGS):
         if '_' not in name and name[0] != 'h':
             args.append('-{}'.format(name[0]))
         args[0] = '--{}'.format(name.replace('_', '-'))
-        kwargs['dest'] = name
+        kwargs['dest'] = arg_name
         kwargs['default'] = default
         type_ = kwargs.pop('type',
                            type(default) if default is not None else None)

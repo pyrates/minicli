@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.0
+
+-  Allow to override argument names (#9)
+
 ## 0.4.4
 
 -  Do not call any command unless all arguments are valid (#8)

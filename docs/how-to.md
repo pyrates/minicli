@@ -40,6 +40,19 @@ This command can now be used like this to make it verbose:
     mycommand --verbose
 
 
+## How to append values to a list
+
+Simply use a python list keyword argument:
+
+    @cli
+    def mycommand(extra=[]):
+        # pass
+
+This command can now be used like this, and all values will be appended in
+`extra` list:
+
+    mycommand --extra foo --extra bar
+
 ## How to use annotations
 
 You can use annotation to specify the arguments types, for example:

@@ -211,7 +211,10 @@ def make_argument(arg_name, default=NO_DEFAULT, **kwargs):
             action = 'store_false' if default else 'store_true'
             kwargs['action'] = action
         elif type_ in (list, tuple):
-            kwargs['nargs'] = kwargs.get('nargs', '*')
+            kwargs['action'] = 'append'
+            nargs = kwargs.get('nargs')
+            if nargs:
+                kwargs['nargs'] = nargs
         elif callable(type_):
             kwargs['type'] = type_
         elif callable(default):

@@ -330,6 +330,17 @@ def test_can_mix_async_and_normal_functions(capsys):
     assert "Other command param is myparam" in out
 
 
+def test_can_append_to_list(capsys):
+
+    @cli
+    def mycommand(param=[]):
+        print(param)
+
+    run('mycommand', '--param', 'foo', '--param', 'bar')
+    out, err = capsys.readouterr()
+    assert "['foo', 'bar']" in out
+
+
 def test_can_override_list_nargs(capsys):
 
     @cli('param', nargs=4)

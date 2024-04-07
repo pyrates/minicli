@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.2
+
+ - allow run to optionally accept a callable to use as the only command
+
 ## 0.5.1
 
 - fix use of append action (`my_kwarg=[]`, then `--my-kwarg=foo --my-kwarg=bar`)

@@ -542,3 +542,14 @@ def test_do_not_call_any_command_with_unkown_extra(capsys):
     out, err = capsys.readouterr()
     assert "success" not in out
     assert "failed" not in out
+
+
+def test_run_without_declaring_command(capsys):
+
+    def mycommand(param):
+        print(param)
+        return
+
+    run(mycommand, 'a param')
+    out, err = capsys.readouterr()
+    assert "a param" in out

@@ -76,6 +76,23 @@ See [how-to guides](how-to.md) for concrete usage examples.
     if __name__ == '__main__':
         run()
 
+If run is called with a callable as first argument, it will treat that callable as the only command.
+No additional command argument will be required to run it.
+
+For instance:
+
+    def my_callable(param):
+        print(param)
+    
+    if __name__ == '__main__':
+        run(my_callable)
+    
+allows you to call the script without specifying a command:
+
+    $ python script.py a_param
+    ->  a param
+
+
 ### Global parameters
 
 Any kwarg passed to `run` will be turned to a global parameter.

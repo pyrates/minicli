@@ -1,5 +1,6 @@
 import argparse
 import asyncio
+import sys
 import inspect
 
 NO_DEFAULT = inspect._empty
@@ -62,16 +63,19 @@ class Cli:
         except IndexError:
             return ''
 
-    def init_parser(self, subparsers):
-        kwargs = {
-            'help': self.short_help,
-            'conflict_handler': 'resolve'
-        }
+    def create_name(self, kwargs):
         name = self.command.__name__
         if '_' in name:
             kwargs['aliases'] = [name]
             name = name.replace('_', '-')
         kwargs['name'] = name
+
+    def init_parser(self, subparsers):
+        kwargs = {
+            'help': self.short_help,
+            'conflict_handler': 'resolve'
+        }
+        self.create_name(kwargs)
         kwargs.update(self.extra.get('__self__', {}))
         self.parser = subparsers.add_parser(**kwargs)
         self.set_defaults(func=self.invoke)
@@ -118,7 +122,16 @@ def cli(*args, **kwargs):
     return func
 
 
+def _run_single(method, *input, **shared):
+    cli(method)
+    name = method.__name__
+    run(name, *input or sys.argv[1:], **shared)
+    
+
 def run(*input, **shared):
+    if len(input)  and callable(input[0]):
+        _run_single(*input, **shared)
+        return
     parser = argparse.ArgumentParser(add_help=False)
     for arg_name, kwargs in shared.items():
         if not isinstance(kwargs, dict):

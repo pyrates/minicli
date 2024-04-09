@@ -1,6 +1,7 @@
 import argparse
 import asyncio
 import sys
+import warnings
 import inspect
 
 NO_DEFAULT = inspect._empty
@@ -120,12 +121,6 @@ def cli(*args, **kwargs):
         extra[args[1]] = kwargs
     Cli(func, **extra)
     return func
-
-
-def _run_single(method, *input, **shared):
-    cli(method)
-    name = method.__name__
-    run(name, *input or sys.argv[1:], **shared)
     
 
 def run(*input, **shared):
@@ -170,6 +165,20 @@ def run(*input, **shared):
             command.func(command, **shared)
     finally:
         call_wrappers()
+
+
+def _run_single(method, *input, **shared):
+    cli(method)
+    name = method.__name__
+    run(name, *input or sys.argv[1:], **shared)
+
+
+def command(*args, **kwargs):
+    """For pyminiCLI retrocomaptibility."""
+    warnings.warn("This function is only to ease migration"
+                  " from pyminiCLI. Use run() instead.",
+                  DeprecationWarning)
+    return run(*args, **kwargs)
 
 
 def wrap(func):

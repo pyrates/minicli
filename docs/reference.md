@@ -90,7 +90,7 @@ For instance:
 allows you to call the script without specifying a command:
 
     $ python script.py a_param
-    ->  a param
+    ->  a_param
 
 
 ### Global parameters

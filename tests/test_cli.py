@@ -553,3 +553,19 @@ def test_run_without_declaring_command(capsys):
     run(mycommand, 'a param')
     out, err = capsys.readouterr()
     assert "a param" in out
+    
+
+def test_single_command_cli(capsys):
+
+    @cli('param', nargs=4)
+    def mycommand(param=[1, 2, 3, 4]):
+        print(param)
+
+    run(mycommand, '--param', '1', '2', '3', '4')
+    out, err = capsys.readouterr()
+    assert "['1', '2', '3', '4']" in out
+
+    with pytest.raises(SystemExit):
+        run(mycommand, '--param', '1', '2', '3')
+    out, err = capsys.readouterr()
+    assert "argument --param/-p: expected 4 arguments" in err

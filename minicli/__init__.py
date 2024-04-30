@@ -12,12 +12,11 @@ _registry = []
 
 
 class Cli:
-
     def __init__(self, command, **extra):
         self.extra = extra
         self.command = command
         self.inspect()
-        if not hasattr(command, '_cli'):
+        if not hasattr(command, "_cli"):
             command._cli = self
             _registry.append(self)
 
@@ -46,11 +45,11 @@ class Cli:
 
     @property
     def help(self):
-        return self.command.__doc__ or ''
+        return self.command.__doc__ or ""
 
     @property
     def short_help(self):
-        return self.help.split('\n\n')[0]
+        return self.help.split("\n\n")[0]
 
     def inspect(self):
         self.__doc__ = inspect.getdoc(self.command)
@@ -59,25 +58,21 @@ class Cli:
 
     def parse_parameter_help(self, name):
         try:
-            return (self.help.split(':{}:'.format(name), 1)[1]
-                             .split('\n')[0].strip())
+            return self.help.split(":{}:".format(name), 1)[1].split("\n")[0].strip()
         except IndexError:
-            return ''
+            return ""
 
     def create_name(self, kwargs):
         name = self.command.__name__
-        if '_' in name:
-            kwargs['aliases'] = [name]
-            name = name.replace('_', '-')
-        kwargs['name'] = name
+        if "_" in name:
+            kwargs["aliases"] = [name]
+            name = name.replace("_", "-")
+        kwargs["name"] = name
 
     def init_parser(self, subparsers):
-        kwargs = {
-            'help': self.short_help,
-            'conflict_handler': 'resolve'
-        }
+        kwargs = {"help": self.short_help, "conflict_handler": "resolve"}
         self.create_name(kwargs)
-        kwargs.update(self.extra.get('__self__', {}))
+        kwargs.update(self.extra.get("__self__", {}))
         self.parser = subparsers.add_parser(**kwargs)
         self.set_defaults(func=self.invoke)
         for arg_name, parameter in self.spec.parameters.items():
@@ -87,12 +82,12 @@ class Cli:
                 default = NARGS
             type_ = parameter.annotation
             if type_ != inspect._empty:
-                kwargs['type'] = type_
+                kwargs["type"] = type_
             kwargs.update(self.extra.get(arg_name, {}))
-            if 'help' not in kwargs:
-                kwargs['help'] = self.parse_parameter_help(arg_name)
-            if 'default' not in kwargs:
-                kwargs['default'] = default
+            if "help" not in kwargs:
+                kwargs["help"] = self.parse_parameter_help(arg_name)
+            if "default" not in kwargs:
+                kwargs["default"] = default
             self.add_argument(arg_name, **kwargs)
 
     def add_argument(self, arg_name, **kwargs):
@@ -107,42 +102,42 @@ def cli(*args, **kwargs):
     if not args:
         # User-friendlyness: allow using @cli() without any argument.
         if kwargs:  # Overriding parser arguments with only kwargs.
-            return lambda f: cli(f, '__self__', **kwargs)
+            return lambda f: cli(f, "__self__", **kwargs)
         return cli
     if not callable(args[0]):
         # We are overriding an argument from the decorator.
         return lambda f: cli(f, *args, **kwargs)
     func = args[0]
     extra = {}
-    if hasattr(func, '_cli') and len(args) > 1 and kwargs:
+    if hasattr(func, "_cli") and len(args) > 1 and kwargs:
         # Chaining cli(xxx) calls.
         extra = func._cli.extra
     if len(args) > 1:
         extra[args[1]] = kwargs
     Cli(func, **extra)
     return func
-    
+
 
 def run(*input, **shared):
-    if len(input)  and callable(input[0]):
+    if len(input) and callable(input[0]):
         _run_single(*input, **shared)
         return
     parser = argparse.ArgumentParser(add_help=False)
     for arg_name, kwargs in shared.items():
         if not isinstance(kwargs, dict):
-            kwargs = {'default': kwargs}
+            kwargs = {"default": kwargs}
         args, kwargs = make_argument(arg_name, **kwargs)
         parser.add_argument(*args, **kwargs)
     # shared must be parsed before actual commands so they can be passed to
     # before wrapper
     parsed, extras = parser.parse_known_args(input or None)
-    shared = {k: getattr(parsed, k, None) for k in shared.keys()
-              if hasattr(parsed, k)}
+    shared = {k: getattr(parsed, k, None) for k in shared.keys() if hasattr(parsed, k)}
     # No command is known when calling parse_known_args, prevent argparse to
     # display the help and exit.
-    parser.add_argument('-h', '--help', action='store_true',
-                        help='Show this help message and exit')
-    subparsers = parser.add_subparsers(title='Available commands', metavar='')
+    parser.add_argument(
+        "-h", "--help", action="store_true", help="Show this help message and exit"
+    )
+    subparsers = parser.add_subparsers(title="Available commands", metavar="")
     for cmd in _registry:
         cmd.init_parser(subparsers)
 
@@ -151,7 +146,7 @@ def run(*input, **shared):
     commands = []
     while extras:
         command, extras = parser.parse_known_args(args=extras)
-        if not command or not hasattr(command, 'func'):
+        if not command or not hasattr(command, "func"):
             # No argument given, just display help.
             parser.print_help()
             parser.exit()  # Mimic original behaviour.
@@ -175,15 +170,16 @@ def _run_single(method, *input, **shared):
 
 def command(*args, **kwargs):
     """For pyminiCLI retrocomaptibility."""
-    warnings.warn("This function is only to ease migration"
-                  " from pyminiCLI. Use run() instead.",
-                  DeprecationWarning)
+    warnings.warn(
+        "This function is only to ease migration "
+        " from pyminiCLI. Use run() instead.",
+        DeprecationWarning,
+    )
     return run(*args, **kwargs)
 
 
 def wrap(func):
-    if not (inspect.isgeneratorfunction(func)
-            or inspect.isasyncgenfunction(func)):
+    if not (inspect.isgeneratorfunction(func) or inspect.isasyncgenfunction(func)):
         raise ValueError(f'"{func}" needs to yield')
     _wrapper_functions.append(func)
     return func
@@ -222,26 +218,25 @@ def make_argument(arg_name, default=NO_DEFAULT, **kwargs):
     name = kwargs.pop("name", arg_name)
     args = [name]
     if default not in (NO_DEFAULT, NARGS):
-        if '_' not in name and name[0] != 'h':
-            args.append('-{}'.format(name[0]))
-        args[0] = '--{}'.format(name.replace('_', '-'))
-        kwargs['dest'] = arg_name
-        kwargs['default'] = default
-        type_ = kwargs.pop('type',
-                           type(default) if default is not None else None)
+        if "_" not in name and name[0] != "h":
+            args.append("-{}".format(name[0]))
+        args[0] = "--{}".format(name.replace("_", "-"))
+        kwargs["dest"] = arg_name
+        kwargs["default"] = default
+        type_ = kwargs.pop("type", type(default) if default is not None else None)
         if type_ == bool:
-            action = 'store_false' if default else 'store_true'
-            kwargs['action'] = action
+            action = "store_false" if default else "store_true"
+            kwargs["action"] = action
         elif type_ in (list, tuple):
-            kwargs['action'] = 'append'
-            nargs = kwargs.get('nargs')
+            kwargs["action"] = "append"
+            nargs = kwargs.get("nargs")
             if nargs:
-                kwargs['nargs'] = nargs
+                kwargs["nargs"] = nargs
         elif callable(type_):
-            kwargs['type'] = type_
+            kwargs["type"] = type_
         elif callable(default):
-            kwargs['type'] = type_
-            kwargs['default'] = ''
+            kwargs["type"] = type_
+            kwargs["default"] = ""
     elif default == NARGS:
-        kwargs['nargs'] = '*'
+        kwargs["nargs"] = "*"
     return args, kwargs

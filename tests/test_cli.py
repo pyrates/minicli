@@ -542,3 +542,30 @@ def test_do_not_call_any_command_with_unkown_extra(capsys):
     out, err = capsys.readouterr()
     assert "success" not in out
     assert "failed" not in out
+
+
+def test_run_without_declaring_command(capsys):
+
+    def mycommand(param):
+        print(param)
+        return
+
+    run(mycommand, 'a param')
+    out, err = capsys.readouterr()
+    assert "a param" in out
+    
+
+def test_single_command_cli(capsys):
+
+    @cli('param', nargs=4)
+    def mycommand(param=[1, 2, 3, 4]):
+        print(param)
+
+    run(mycommand, '--param', '1', '2', '3', '4')
+    out, err = capsys.readouterr()
+    assert "['1', '2', '3', '4']" in out
+
+    with pytest.raises(SystemExit):
+        run(mycommand, '--param', '1', '2', '3')
+    out, err = capsys.readouterr()
+    assert "argument --param/-p: expected 4 arguments" in err

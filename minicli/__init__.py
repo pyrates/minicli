@@ -1,8 +1,9 @@
 import argparse
 import asyncio
-import sys
-import warnings
 import inspect
+import sys
+import typing
+import warnings
 
 NO_DEFAULT = inspect._empty
 NARGS = ...
@@ -233,7 +234,12 @@ def make_argument(arg_name, default=NO_DEFAULT, **kwargs):
             if nargs:
                 kwargs["nargs"] = nargs
         elif callable(type_):
-            kwargs["type"] = type_
+            if isinstance(typing.get_origin(type_), typing._SpecialForm):
+                # May be typing.Optional, or typing.Union, Any…, we don't know what
+                # to do with that
+                pass
+            else:
+                kwargs["type"] = type_
         elif callable(default):
             kwargs["type"] = type_
             kwargs["default"] = ""

@@ -1,5 +1,6 @@
 import asyncio
 from pathlib import Path
+from typing import Union, Optional
 
 import pytest
 
@@ -536,3 +537,55 @@ def test_single_command_cli_with_args(capsys):
         run(mycommand, "--param", "1", "2", "3")
     out, err = capsys.readouterr()
     assert "argument --param/-p: expected 4 arguments" in err
+
+
+def test_simple_typed_kwarg(capsys):
+    @cli
+    def mycommand(name: str = "John"):
+        print(f"Hi {name}!")
+
+    run("mycommand")
+    out, err = capsys.readouterr()
+    assert "Hi John!" in out
+
+    run("mycommand", "--name", "Jack")
+    out, err = capsys.readouterr()
+    assert "Hi Jack!" in out
+
+
+def test_typing_should_not_interfere(capsys):
+    @cli
+    def command_with_optional(name: Optional[str] = "John"):
+        print(f"Hi {name}!")
+
+    run("command_with_optional")
+    out, err = capsys.readouterr()
+    assert "Hi John!" in out
+
+    run("command_with_optional", "--name", "Jack")
+    out, err = capsys.readouterr()
+    assert "Hi Jack!" in out
+
+    @cli
+    def command_with_union(name: Union[str, None] = "John"):
+        print(f"Hi {name}!")
+
+    run("command_with_union")
+    out, err = capsys.readouterr()
+    assert "Hi John!" in out
+
+    run("command_with_union", "--name", "Jack")
+    out, err = capsys.readouterr()
+    assert "Hi Jack!" in out
+
+    @cli
+    def command_with_union_shortand(name: str | None = "John"):
+        print(f"Hi {name}!")
+
+    run("command_with_union")
+    out, err = capsys.readouterr()
+    assert "Hi John!" in out
+
+    run("command_with_union", "--name", "Jack")
+    out, err = capsys.readouterr()
+    assert "Hi Jack!" in out

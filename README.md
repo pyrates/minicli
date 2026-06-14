@@ -6,7 +6,7 @@ Supports annotations and async functions.
 
 ## Requirements
 
-- Python >= 3.6
+- Python >= 3.10
 
 
 ## Install
@@ -21,6 +21,7 @@ See [https://minicli.readthedocs.org](https://minicli.readthedocs.org)
 
 ## Run tests
 
-    pip install -r requirements-dev.txt
-    python setup.py develop
-    py.test
+This project uses [uv](https://docs.astral.sh/uv/):
+
+    uv sync
+    uv run pytest

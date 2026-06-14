@@ -1,10 +1,10 @@
 develop:
-	pip install -e .[test,doc]
+	uv sync
 dist:
-	python setup.py sdist bdist_wheel
+	uv build
 upload:
-	twine upload dist/*
+	uv publish
 clean:
 	rm -rf *.egg-info/ dist/ build/
 test:
-	pytest -vx
+	uv run pytest -vx

@@ -1,3 +1,0 @@
-pytest
-mkdocs
-twine>=1.11.0

@@ -3,7 +3,8 @@ develop:
 dist:
 	uv build
 upload:
-	uv publish
+	uv build
+	uv publish --keyring-provider subprocess -u __token__
 clean:
 	rm -rf *.egg-info/ dist/ build/
 test:

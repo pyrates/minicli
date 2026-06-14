@@ -125,6 +125,39 @@ You may want to control the choices for a mandatory positional argument:
         pass
 
 
+## How to group commands under a subcommand
+
+You may want to nest commands under a common subcommand, the way `git remote add`
+nests `add` under `remote`. Use `group` to create the subcommand, then decorate
+your functions with it instead of `@cli`:
+
+    from minicli import group, run
+
+    remote = group('remote', help='Manage remotes')
+
+    @remote
+    def add(name):
+        print(f'Adding remote {name}')
+
+    @remote
+    def remove(name):
+        print(f'Removing remote {name}')
+
+    run()
+
+The commands are now reached through the group:
+
+    remote add origin
+    remote remove origin
+
+A group decorator accepts the same forms as `@cli`, so argument overrides work
+too:
+
+    @remote('name', choices=['origin', 'upstream'])
+    def add(name):
+        pass
+
+
 ## How to deal with global parameters
 
 You may have parameters used all over your commands, and you want to define them

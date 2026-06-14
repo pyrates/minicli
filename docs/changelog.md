@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.0
+
+- added `group` to gather commands under a common subcommand (eg. `remote add`)
+
 ## 0.5.2
 
  - allow run to optionally accept a callable to use as the only command

@@ -69,6 +69,46 @@ You can chain the calls to `@cli` as needed:
 See [how-to guides](how-to.md) for concrete usage examples.
 
 
+## group
+
+`group` gathers several commands under a common subcommand, the way `git remote
+add` nests `add` under `remote`.
+
+Create a group, then use the returned object as a decorator exactly like `@cli`:
+
+    from minicli import group, run
+
+    remote = group('remote')
+
+    @remote
+    def add(name):
+        pass
+
+    @remote
+    def remove(name):
+        pass
+
+    run()
+
+This exposes `add` and `remove` as `remote add` and `remote remove`; they are no
+longer reachable at the top level:
+
+    $ python script.py remote add origin
+
+A group accepts the same forms as `@cli`, including argument overrides:
+
+    @remote('name', choices=['origin', 'upstream'])
+    def add(name):
+        pass
+
+You can pass `add_parser` kwargs (eg. `help`) when creating the group; they show
+up in the top-level help:
+
+    remote = group('remote', help='Manage remotes')
+
+`group` is also reachable as `cli.group` if you prefer a single import.
+
+
 ## run
 
 `run` will call `argparse` for you. You generally want to call it like this:

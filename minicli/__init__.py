@@ -13,13 +13,15 @@ _registry = []
 
 
 class Cli:
-    def __init__(self, command, **extra):
+    def __init__(self, command, registry=None, **extra):
         self.extra = extra
         self.command = command
         self.inspect()
         if not hasattr(command, "_cli"):
             command._cli = self
-            _registry.append(self)
+            if registry is None:
+                registry = _registry
+            registry.append(self)
 
     def __call__(self, *args, **kwargs):
         """Run original command."""
@@ -99,15 +101,15 @@ class Cli:
         self.parser.set_defaults(**kwargs)
 
 
-def cli(*args, **kwargs):
+def cli(*args, registry=None, **kwargs):
     if not args:
         # User-friendlyness: allow using @cli() without any argument.
         if kwargs:  # Overriding parser arguments with only kwargs.
-            return lambda f: cli(f, "__self__", **kwargs)
-        return cli
+            return lambda f: cli(f, "__self__", registry=registry, **kwargs)
+        return lambda f: cli(f, registry=registry)
     if not callable(args[0]):
         # We are overriding an argument from the decorator.
-        return lambda f: cli(f, *args, **kwargs)
+        return lambda f: cli(f, *args, registry=registry, **kwargs)
     func = args[0]
     extra = {}
     if hasattr(func, "_cli") and len(args) > 1 and kwargs:
@@ -115,8 +117,51 @@ def cli(*args, **kwargs):
         extra = func._cli.extra
     if len(args) > 1:
         extra[args[1]] = kwargs
-    Cli(func, **extra)
+    Cli(func, registry=registry, **extra)
     return func
+
+
+class Group:
+    """Gather commands under a common subcommand (eg. `prog remote add`)."""
+
+    def __init__(self, name, **extra):
+        self.name = name
+        self.extra = extra
+        self.commands = []
+        _registry.append(self)
+
+    def __call__(self, *args, **kwargs):
+        """Register the decorated function as a command of this group.
+
+        Accepts the same forms as @cli (bare, called, or with arg overrides);
+        the only difference is the commands land in this group's registry.
+        """
+        return cli(*args, registry=self.commands, **kwargs)
+
+    @property
+    def short_help(self):
+        return self.extra.get("help", "")
+
+    def init_parser(self, subparsers):
+        kwargs = {"conflict_handler": "resolve", "help": self.short_help}
+        kwargs.update(self.extra)
+        name = self.name
+        if "_" in name:
+            kwargs["aliases"] = [name]
+            name = name.replace("_", "-")
+        kwargs["name"] = name
+        self.parser = subparsers.add_parser(**kwargs)
+        nested = self.parser.add_subparsers(title="Available commands", metavar="")
+        for command in self.commands:
+            command.init_parser(nested)
+
+
+def group(name, **extra):
+    return Group(name, **extra)
+
+
+# Allow both `from minicli import group` and `cli.group("remote")`.
+cli.group = group
 
 
 def run(*input, **shared):
@@ -225,7 +270,7 @@ def make_argument(arg_name, default=NO_DEFAULT, **kwargs):
         kwargs["dest"] = arg_name
         kwargs["default"] = default
         type_ = kwargs.pop("type", type(default) if default is not None else None)
-        if type_ == bool:
+        if type_ is bool:
             action = "store_false" if default else "store_true"
             kwargs["action"] = action
         elif type_ in (list, tuple):

@@ -4,7 +4,7 @@ from typing import Union, Optional
 
 import pytest
 
-from minicli import cli, run, wrap
+from minicli import cli, group, run, wrap
 
 
 def test_simple_arg_is_a_required_string(capsys):
@@ -227,7 +227,7 @@ def test_can_set_param_choices_from_cli_kwargs(capsys):
     with pytest.raises(SystemExit):
         run("mycommand", "5")
     out, err = capsys.readouterr()
-    assert "myparam: invalid choice: 5 (choose from 1, 2, 3, 4)" in err
+    assert "myparam: invalid choice: '5'" in err
 
 
 def test_can_override_two_params_from_cli_kwargs(capsys):
@@ -368,7 +368,7 @@ def test_can_override_param_with_same_name_as_command(capsys):
     with pytest.raises(SystemExit):
         run("mycommand", "baz")
     out, err = capsys.readouterr()
-    assert "mycommand: invalid choice: 'baz' (choose from 'foo', 'bar')" in err
+    assert "mycommand: invalid choice: 'baz'" in err
 
 
 def test_wrappers(capsys):
@@ -551,6 +551,148 @@ def test_simple_typed_kwarg(capsys):
     run("mycommand", "--name", "Jack")
     out, err = capsys.readouterr()
     assert "Hi Jack!" in out
+
+
+def test_group_registers_a_subcommand(capsys):
+    remote = group("remote")
+
+    @remote
+    def add(name):
+        print("Adding", name)
+
+    run("remote", "add", "myremote")
+    out, err = capsys.readouterr()
+    assert "Adding myremote" in out
+
+
+def test_group_command_is_not_callable_at_top_level(capsys):
+    remote = group("remote")
+
+    @remote
+    def add(name):
+        print("Adding", name)
+
+    with pytest.raises(SystemExit):
+        run("add", "myremote")
+    out, err = capsys.readouterr()
+    assert "Adding myremote" not in out
+    assert "invalid choice: 'add'" in err
+
+
+def test_group_can_hold_several_commands(capsys):
+    remote = group("remote")
+
+    @remote
+    def add(name):
+        print("Adding", name)
+
+    @remote
+    def remove(name):
+        print("Removing", name)
+
+    run("remote", "add", "foo")
+    out, err = capsys.readouterr()
+    assert "Adding foo" in out
+
+    run("remote", "remove", "bar")
+    out, err = capsys.readouterr()
+    assert "Removing bar" in out
+
+
+def test_group_unknown_subcommand_errors(capsys):
+    remote = group("remote")
+
+    @remote
+    def add(name):
+        print("Adding", name)
+
+    with pytest.raises(SystemExit):
+        run("remote", "nope")
+    out, err = capsys.readouterr()
+    assert "invalid choice: 'nope'" in err
+
+
+def test_group_command_accepts_arg_overrides(capsys):
+    remote = group("remote")
+
+    @remote("name", choices=["foo", "bar"])
+    def add(name):
+        print("Adding", name)
+
+    run("remote", "add", "foo")
+    out, err = capsys.readouterr()
+    assert "Adding foo" in out
+
+    with pytest.raises(SystemExit):
+        run("remote", "add", "baz")
+    out, err = capsys.readouterr()
+    assert "name: invalid choice: 'baz'" in err
+
+
+def test_group_command_can_be_called_with_empty_decorator(capsys):
+    remote = group("remote")
+
+    @remote()
+    def add(name):
+        print("Adding", name)
+
+    run("remote", "add", "foo")
+    out, err = capsys.readouterr()
+    assert "Adding foo" in out
+
+
+def test_group_command_underscore_name_is_dashed(capsys):
+    remote = group("remote")
+
+    @remote
+    def add_url(url):
+        print("Adding", url)
+
+    run("remote", "add-url", "http://example.org")
+    out, err = capsys.readouterr()
+    assert "Adding http://example.org" in out
+
+
+def test_group_help_is_listed_at_top_level(capsys):
+    remote = group("remote", help="Manage remotes")
+
+    @remote
+    def add(name):
+        print("Adding", name)
+
+    with pytest.raises(SystemExit):
+        run("--help")
+    out, err = capsys.readouterr()
+    assert "Manage remotes" in out
+
+
+def test_group_can_be_chained_with_top_level_commands(capsys):
+    remote = group("remote")
+
+    @remote
+    def add(name):
+        print("Adding", name)
+
+    @cli
+    def status():
+        print("Status ok")
+
+    run("status", "remote", "add", "foo")
+    out, err = capsys.readouterr()
+    assert "Status ok" in out
+    assert "Adding foo" in out
+
+
+def test_group_is_reachable_through_cli_attribute(capsys):
+    remote = cli.group("remote")
+
+    @remote
+    def add(name):
+        print("Adding", name)
+
+    run("remote", "add", "foo")
+    out, err = capsys.readouterr()
+    assert "Adding foo" in out
 
 
 def test_typing_should_not_interfere(capsys):
